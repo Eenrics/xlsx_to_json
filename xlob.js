@@ -1,6 +1,7 @@
 const xlsx = require('node-xlsx');
+const uuid = require('uuid');
 
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes, UUIDV4 } = require('sequelize');
 
 const sequelize = new Sequelize('xlsx_db', 'xlsx', 'xlsx', {
   host: 'localhost',
@@ -104,14 +105,14 @@ const convert_to_db = async () => {
       if (title !== '') {
 
         if (subtitle !== '') {
-            data.push({subtitle, content})
+            data.push({subtitle, content, id: uuid.v4()})
             console.log("pushed to data", data.length)
           }
           subtitle = ''
           content = []
     
 
-        GDB.push({title, data})
+        GDB.push({title, data, id: uuid.v4()})
         console.log("pushed to db", GDB.length)
       }
       title = worksheets[0].data[i][1]
@@ -122,7 +123,7 @@ const convert_to_db = async () => {
       console.log('*********THIS IS SUBTITLE***********')
 
       if (subtitle !== '') {
-        data.push({subtitle, content})
+        data.push({subtitle, content, id: uuid.v4()})
         console.log("pushed to data", data.length)
       }
       console.log('subtitle', subtitle)
@@ -140,6 +141,7 @@ const convert_to_db = async () => {
       console.log('*********THIS IS DESCRIPTION***********', 'id: ', lastContentId)
 
       content.push( {
+        id: uuid.v4(),
         item_id: lastContentId,
         description: worksheets[0].data[i][1],
         unit: null,
@@ -162,6 +164,7 @@ const convert_to_db = async () => {
 
         
         content.push( {
+          id: uuid.v4(),
             item_id: lastContentId,
             description: worksheets[0].data[i][1],
             unit: worksheets[0].data[i][2],
@@ -174,8 +177,8 @@ const convert_to_db = async () => {
     }
   }
 
-  if (content.length !== 0 || subtitle !== '') data.push({subtitle, content}) 
-  if (data.length !== 0 || title !== '') GDB.push({title, data}) 
+  if (content.length !== 0 || subtitle !== '') data.push({subtitle, content, id: uuid.v4()}) 
+  if (data.length !== 0 || title !== '') GDB.push({title, data, id: uuid.v4()}) 
 
   console.log('*********DATABASE POPULATED***********')
   console.log(JSON.stringify(GDB[0].data.length))
@@ -231,9 +234,103 @@ convert_to_db();
 //     }
 //   ]
 
+
+const findTitle = (id) => {
+  GDB.map(t => console.log(t.id))
+  const result = GDB.find(t => t.id === id)
+  if (result) return result
+  return {error: "no data for this id"}
+}
+
+
+const findSubTitle = (id) => {
+  // GDB.map(t => console.log(t.id))
+  let result
+  for (let i = 0; i < GDB.length; i++) {
+    const r = GDB[i].data.find(t => t.id === id)
+    if (r) result = r
+  }
+  if (result) return result
+  return {error: "no data for this id"}
+}
+
+const findContent = (id) => {
+  // GDB.map(t => console.log(t.id))
+  let result
+  for (let i = 0; i < GDB.length; i++) {
+    for (let j = 0; j < GDB[i].data.length; j++) {
+      const d = GDB[i].data[j].content.find(t => t.id === id)
+    if (d) result = d
+    }
+  }
+  if (result) return result
+  return {error: "no data for this id"}
+}
+
+
+
+
+
+
+
+
+// const addTitle = (data) => {
+//   if (!CharacterData) return {error: "no data for this id"}
+//   const newTitle = {title, data, id: uuid.v4()}
+//   GDB.push(newTitle)
+//   return newTitle
+// }
+
+
+// const addSubTitle = (titleId, data) => {
+//   // GDB.map(t => console.log(t.id))
+//   let result
+//   for (let i = 0; i < GDB.length; i++) {
+//     const r = GDB[i].data.find(t => t.id === id)
+//     if (r) result = r
+//   }
+//   if (result) return result
+//   return {error: "no data for this id"}
+// }
+
+// const addContent = (id) => {
+//   // GDB.map(t => console.log(t.id))
+//   let result
+//   for (let i = 0; i < GDB.length; i++) {
+//     for (let j = 0; j < GDB[i].data.length; j++) {
+//       const d = GDB[i].data[j].content.find(t => t.id === id)
+//     if (d) result = d
+//     }
+//   }
+//   if (result) return result
+//   return {error: "no data for this id"}
+// }
+
+
+
+
+
 const express = require('express')
 const app = express()
 
-app.get('/', (req, res) => res.send(JSON.stringify(GDB)))
+app.get('/', (req, res) => res.json(GDB))
+
+app.get('/title/:id', (req, res) => res.json(findTitle(req.params.id)))
+app.get('/subtitle/:id', (req, res) => res.json(findSubTitle(req.params.id)))
+app.get('/content/:id', (req, res) => res.json(findContent(req.params.id)))
+
+// app.post('/title/:id', (req, res) => res.json(addTitle(req.params.id)))
+// app.post('/subtitle/:id', (req, res) => res.json(addSubTitle(req.params.id)))
+// app.post('/content/:id', (req, res) => res.json(addContent(req.params.id)))
+
+// app.put('/title/:id', (req, res) => res.json(editTitle(req.params.id)))
+// app.put('/subtitle/:id', (req, res) => res.json(editSubTitle(req.params.id)))
+// app.put('/content/:id', (req, res) => res.json(editContent(req.params.id)))
+
+// app.delete('/title/:id', (req, res) => res.json(deleteTitle(req.params.id)))
+// app.delete('/subtitle/:id', (req, res) => res.json(deleteSubTitle(req.params.id)))
+// app.delete('/content/:id', (req, res) => res.json(deleteContent(req.params.id)))
+
+app.get('/count', (req, res) => res.send({title: GDB.length, subtitle: GDB.reduce((s, e) => s + e.data.length), content: GDB.reduce((s, e) => s + e.data.reduce((sm, el) => sm + el.content.length))}))
 
 app.listen(3000, () => console.log('server is running'))
