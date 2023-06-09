@@ -20,3 +20,13 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+#node module
+node_modules/
+/node_modules/
+*/node_modules
+
+# package lock files
+package-lock.json
+/package-lock.json
+*/package-lock.json
