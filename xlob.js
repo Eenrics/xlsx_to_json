@@ -165,9 +165,9 @@ const convert_to_db = async () => {
             item_id: lastContentId,
             description: worksheets[0].data[i][1],
             unit: worksheets[0].data[i][2],
-            quantity: parseFloat(worksheets[0].data[i][3]).toFixed(2),
+            quantity: worksheets[0].data[i][3] === '-' ? worksheets[0].data[i][3] : parseFloat(worksheets[0].data[i][3]).toFixed(2),
             rate: parseFloat(worksheets[0].data[i][4]).toFixed(2),
-            amount: worksheets[0].data[i][5] !== NaN ? parseFloat(worksheets[0].data[i][5]).toFixed(2) : 0,
+            amount: worksheets[0].data[i][5] !== NaN ? (worksheets[0].data[i][5] === '-' ? worksheets[0].data[i][5] : parseFloat(worksheets[0].data[i][5]).toFixed(2)) : 0,
         })
         console.log("pushed to content", content.length)
       }
