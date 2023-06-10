@@ -311,9 +311,16 @@ const findContent = (id) => {
 
 
 const express = require('express')
+const cors = require('cors')
 const app = express()
+app.use(cors())
 
-app.get('/', (req, res) => res.json(GDB))
+app.use(express.static('dist'))
+const path = require('path')
+app.use('/', express.static(path.join(__dirname, 'dist')))
+
+// app.get('/', (req, res) => res.json(GDB))
+app.get('/data', (req, res) => res.json(GDB))
 
 app.get('/title/:id', (req, res) => res.json(findTitle(req.params.id)))
 app.get('/subtitle/:id', (req, res) => res.json(findSubTitle(req.params.id)))
@@ -333,4 +340,4 @@ app.get('/content/:id', (req, res) => res.json(findContent(req.params.id)))
 
 app.get('/count', (req, res) => res.send({title: GDB.length, subtitle: GDB.reduce((s, e) => s + e.data.length), content: GDB.reduce((s, e) => s + e.data.reduce((sm, el) => sm + el.content.length))}))
 
-app.listen(3000, () => console.log('server is running'))
+app.listen(3000, () => console.log('server is running on port 3000'))
