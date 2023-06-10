@@ -339,5 +339,5 @@ app.get('/content/:id', (req, res) => res.json(findContent(req.params.id)))
 // app.delete('/content/:id', (req, res) => res.json(deleteContent(req.params.id)))
 
 app.get('/count', (req, res) => res.send({title: GDB.length, subtitle: GDB.reduce((s, e) => s + e.data.length), content: GDB.reduce((s, e) => s + e.data.reduce((sm, el) => sm + el.content.length))}))
-
-app.listen(3000, () => console.log('server is running on port 3000'))
+const port = process.env.PORT || 3000
+app.listen(port, () => console.log('server is running on port', port))

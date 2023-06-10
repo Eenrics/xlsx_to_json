@@ -14,7 +14,7 @@ function App() {
 
   return (
     <>
-      <p>You need to pay me before you can edit, add, or delete contents</p>
+      <p>Editing, Adding, importing, deleting feature comming soon</p>
       {
         data.map(d => {
           return (
