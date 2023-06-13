@@ -44,13 +44,15 @@ jobs:
       - run:
           name: "Set Production"
           command: |
-            if [[ $(git log -1 --pretty=%B $CIRCLE_SHA1) == *"#skip"* ]]
+            if [[ $(git log -1 --pretty=%B $CIRCLE_SHA1) == *"#notskip"* ]]
             then
               echo "Setting RUN_PRODUCTION to false"
               echo "RUN_PRODUCTION=false" >> $BASH_ENV
+              echo "ACTION=build" >> $BASH_ENV
             else
               echo "Setting RUN_PRODUCTION to true"
               echo "RUN_PRODUCTION=true" >> $BASH_ENV
+              echo "ACTION=deploy" >> $BASH_ENV
             fi
           no_output_timeout: 60
 
