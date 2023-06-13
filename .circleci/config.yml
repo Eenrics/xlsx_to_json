@@ -1,0 +1,69 @@
+version: 2.1
+
+parameters:
+  run-production: 
+    type: boolean
+    default: false
+  action:
+    type: enum
+    enum: [build, report]
+    default: build
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Build"
+          command: "echo build!"
+
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    environment:
+      SKIP_BUILD: $$(./script.sh)
+    steps:
+      - checkout
+      # - print_pipeline_id:
+      #     id: << pipeline.id >>
+      - run:
+          name: "Deploy"
+          command: "echo deploy!"
+          # when: on_fail
+    # if: << pipeline.parameters.skip_build != '1' && env.SKIP_BUILD != '1' >>
+
+  set-production:
+    docker:
+      - image: cimg/base:stable
+    environment:
+      RUN_PRODUCTION: ''
+    steps:
+      - checkout
+      - run:
+          name: "Set Production"
+          command: |
+            if [[ $(git log -1 --pretty=%B $CIRCLE_SHA1) == *"#skip"* ]]
+            then
+              echo "Setting RUN_PRODUCTION to false"
+              echo "RUN_PRODUCTION=false" >> $BASH_ENV
+            else
+              echo "Setting RUN_PRODUCTION to true"
+              echo "RUN_PRODUCTION=true" >> $BASH_ENV
+            fi
+          no_output_timeout: 60
+
+workflows:
+  build:
+    when:
+      equal: [ build, << pipeline.parameters.action >> ]
+    jobs:
+      - build
+
+  deploy:
+    when:
+      equal: [ report, << pipeline.parameters.action >> ]
+    jobs:
+      - deploy
+    
